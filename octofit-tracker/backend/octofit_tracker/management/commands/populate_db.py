@@ -1,47 +1,60 @@
-from pymongo import MongoClient
+from django.core.management.base import BaseCommand
+from octofit_tracker.models import User, Team, Activity, Leaderboard, Workout
+from datetime import date
 
-# Connect to the MongoDB server
-client = MongoClient("mongodb://localhost:27017/")
+class Command(BaseCommand):
+    help = 'Populate the database with test data for users, teams, activities, leaderboard, and workouts'
 
-# Access the octofit_db database
-db = client["octofit_db"]
+    def handle(self, *args, **kwargs):
+        # Clear existing data
+        User.objects.all().delete()
+        Team.objects.all().delete()
+        Activity.objects.all().delete()
+        Leaderboard.objects.all().delete()
+        Workout.objects.all().delete()
 
-# Insert test data into the users collection
-users = [
-    {"email": "user1@example.com", "name": "User One", "age": 25, "team": "Team A"},
-    {"email": "user2@example.com", "name": "User Two", "age": 30, "team": "Team B"},
-    {"email": "user3@example.com", "name": "User Three", "age": 22, "team": "Team A"},
-]
-db.users.insert_many(users)
+        # Create users
+        users = [
+            User(email='thundergod@mhigh.edu', name='Thor', age=1500),
+            User(email='metalgeek@mhigh.edu', name='Tony Stark', age=48),
+            User(email='zerocool@mhigh.edu', name='Steve Rogers', age=102),
+            User(email='crashoverride@mhigh.edu', name='Natasha Romanoff', age=35),
+            User(email='sleeptoken@mhigh.edu', name='Bruce Banner', age=49),
+        ]
+        User.objects.bulk_create(users)
 
-# Insert test data into the teams collection
-teams = [
-    {"name": "Team A", "members": ["user1@example.com", "user3@example.com"]},
-    {"name": "Team B", "members": ["user2@example.com"]},
-]
-db.teams.insert_many(teams)
+        # Create teams
+        teams = [
+            Team(name='Avengers', members=[user.email for user in users[:3]]),
+            Team(name='Defenders', members=[user.email for user in users[3:]]),
+        ]
+        Team.objects.bulk_create(teams)
 
-# Insert test data into the activity collection
-activities = [
-    {"user_email": "user1@example.com", "activity": "Running", "duration": 30},
-    {"user_email": "user2@example.com", "activity": "Cycling", "duration": 45},
-    {"user_email": "user3@example.com", "activity": "Swimming", "duration": 60},
-]
-db.activity.insert_many(activities)
+        # Create activities
+        activities = [
+            Activity(user=users[0], type='Cycling', duration=60, date=date(2025, 4, 8)),
+            Activity(user=users[1], type='Crossfit', duration=120, date=date(2025, 4, 8)),
+            Activity(user=users[2], type='Running', duration=90, date=date(2025, 4, 8)),
+            Activity(user=users[3], type='Strength', duration=30, date=date(2025, 4, 8)),
+            Activity(user=users[4], type='Swimming', duration=75, date=date(2025, 4, 8)),
+        ]
+        Activity.objects.bulk_create(activities)
 
-# Insert test data into the leaderboard collection
-leaderboard = [
-    {"user_email": "user1@example.com", "points": 100},
-    {"user_email": "user2@example.com", "points": 150},
-    {"user_email": "user3@example.com", "points": 200},
-]
-db.leaderboard.insert_many(leaderboard)
+        # Create leaderboard entries
+        leaderboard_entries = [
+            Leaderboard(team=teams[0], points=300),
+            Leaderboard(team=teams[1], points=200),
+        ]
+        Leaderboard.objects.bulk_create(leaderboard_entries)
 
-# Insert test data into the workouts collection
-workouts = [
-    {"name": "Morning Run", "type": "Cardio", "duration": 30},
-    {"name": "Evening Yoga", "type": "Flexibility", "duration": 60},
-]
-db.workouts.insert_many(workouts)
+        # Create workouts
+        workouts = [
+            Workout(name='Cycling Training', description='Training for a road cycling event'),
+            Workout(name='Crossfit', description='Training for a crossfit competition'),
+            Workout(name='Running Training', description='Training for a marathon'),
+            Workout(name='Strength Training', description='Training for strength'),
+            Workout(name='Swimming Training', description='Training for a swimming competition'),
+        ]
+        Workout.objects.bulk_create(workouts)
 
-print("Test data has been added to the database.")
+        self.stdout.write(self.style.SUCCESS('Successfully populated the database with test data.'))
