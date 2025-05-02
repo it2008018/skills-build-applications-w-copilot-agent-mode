@@ -4,7 +4,7 @@ function Users() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    fetch('https://urban-space-spoon-j9jxvq799r92j546-8000.app.github.dev/api/users/')
+    fetch('https://opulent-space-palm-tree-g7jjqrvvj692vr44-8000.app.github.dev/api/users/')
       .then(response => response.json())
       .then(data => setUsers(data));
   }, []);
